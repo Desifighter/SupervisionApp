@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -249,6 +250,7 @@ fun ConsentOnboardingScreen(onAccept: () -> Unit) {
 fun DiagnosticsScreen() {
     val context = LocalContext.current
     var state by remember { mutableStateOf(buildDiagnostics(context)) }
+    val policyResults = remember(state) { evaluatePolicyRules(state) }
 
     LaunchedEffect(context) {
         state = buildDiagnostics(context)
@@ -282,6 +284,19 @@ fun DiagnosticsScreen() {
             item { DiagnosticRow(label = "Profile Owner", value = state.profileOwner) }
             item { DiagnosticRow(label = "Package Visibility", value = state.packageVisibility) }
             item { DiagnosticRow(label = "Monitoring", value = state.monitoring) }
+
+            item {
+                Text(
+                    text = "Phase 2: Policy Evaluation",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            items(policyResults) { result ->
+                PolicyRow(result = result)
+            }
+
             item {
                 Text(
                     text = "This app performs diagnostics only. It does not enforce restrictions or manipulate the Work Profile.",
@@ -289,6 +304,36 @@ fun DiagnosticsScreen() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun PolicyRow(result: PolicyEvaluation) {
+    Surface(
+        tonalElevation = 1.dp,
+        shadowElevation = 0.dp,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(result.rule.title)
+                Text(result.status.name)
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = result.reason,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
