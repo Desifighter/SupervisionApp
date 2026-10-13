@@ -2,7 +2,7 @@
 
 SupervisionAPP is a local-first Android supervision platform designed around what Android actually allows on a real managed device. It is not a generic screen-time reminder app and it does not pretend to provide protection when the platform does not allow it.
 
-This repository contains the Phase 0 diagnostics lab and the architecture foundation for the next phases of the product.
+This repository contains the Phase 0 diagnostics lab, the Phase 1 consent gate, and the Phase 2 safe policy-evaluation layer. It is positioned as a guarded observability platform rather than an unsupported enforcement product.
 
 ## Why this exists
 
@@ -30,11 +30,11 @@ SupervisionAPP is intended to provide a structured supervision and monitoring wo
 
 ## Product phases
 
-### Phase 0 — Diagnostics Lab (Current status)
+### Phase 0 — Diagnostics Lab (completed)
 
 This phase proves whether the Android environment supports the required supervision primitives.
 
-The app currently checks:
+The app checks:
 
 - Android version and API level
 - Usage Access status
@@ -48,25 +48,23 @@ The app currently checks:
 
 This phase is intentionally read-only. It does not manipulate the Work Profile, disable apps, or claim enforcement capability.
 
-### Phase 1 — Safe observability and consent
+### Phase 1 — Safe observability and consent (completed)
 
-Planned features:
+Implemented features:
 
 - structured onboarding and consent flow
-- app and profile inventory reporting
-- local audit logs
-- safe, explainable monitoring state
-- explicit warning when a capability is unavailable
+- capability-safe app entry flow
+- explicit warning that the app is observation-only
+- governed access to the diagnostics experience
 
-### Phase 2 — Policy engine and rules
+### Phase 2 — Policy engine and rules (completed)
 
-Planned features:
+Implemented features:
 
-- policy profiles
-- scheduled checks
-- app-category rules
-- local rule evaluation
-- reporting for review and compliance
+- policy profiles and rule evaluation
+- local rule evaluation for readiness, block, and unsupported states
+- policy status display in the diagnostics UI
+- safe reporting of device capability limits without claiming enforcement
 
 ### Phase 3 — Guarded enforcement
 
@@ -88,7 +86,7 @@ Planned features:
 
 ## Current status
 
-The project is currently in Phase 0 and has been validated on the Moto G85.
+The project is currently in Phase 2 and has been validated on the Moto G85.
 
 Verified findings from the live lab:
 
@@ -99,9 +97,10 @@ Verified findings from the live lab:
 - accessibility is enabled
 - app is detected in the personal profile
 - the device has a Work Profile, but the app is not installed or enforced there
+- the policy engine correctly reports READY, BLOCKED, and UNSUPPORTED capability states
 - no real production enforcement should be claimed from this environment
 
-This is the right result for a diagnostics-first implementation. It prevents false product claims and keeps the managed environment intact.
+This is the correct result for a diagnostics-first, capability-safe implementation. It prevents false product claims and keeps the managed environment intact.
 
 ## Architecture
 
@@ -200,9 +199,9 @@ This project is currently being developed as a private internal prototype. Updat
 
 ## Roadmap
 
-1. Complete Phase 0 diagnostics validation
-2. Add safe consent and app-policy onboarding
-3. Formalize the rules engine
+1. Phase 0 diagnostics validation — complete
+2. Safe consent and app-policy onboarding — complete
+3. Policy engine and rule evaluation — complete
 4. Add local persistence and reporting
 5. Introduce guarded enforcement behind runtime capability checks
 6. Prepare enterprise deployment documentation when platform capabilities are available
