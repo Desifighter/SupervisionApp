@@ -6,6 +6,12 @@ enum class PolicyStatus {
     UNSUPPORTED
 }
 
+enum class GuardedActionStatus {
+    READY,
+    BLOCKED,
+    UNSUPPORTED
+}
+
 data class PolicyRule(
     val id: String,
     val title: String,
@@ -22,6 +28,40 @@ data class PolicyEvaluation(
     val status: PolicyStatus,
     val reason: String
 )
+
+data class GuardedAction(
+    val id: String = "guarded_action",
+    val title: String = "Reinforced supervision action",
+    val description: String = "Only runs after Android support and managed-profile requirements are satisfied."
+)
+
+data class GuardedActionEvaluation(
+    val action: GuardedAction,
+    val status: GuardedActionStatus,
+    val reason: String
+)
+
+fun evaluateGuardedAction(diagnostics: DiagnosticsState): GuardedActionEvaluation {
+    val action = GuardedAction()
+
+    return when {
+        diagnostics.usageAccess != "GRANTED" || diagnostics.accessibility != "ENABLED" -> GuardedActionEvaluation(
+            action = action,
+            status = GuardedActionStatus.BLOCKED,
+            reason = "Usage access and accessibility are both required before a supervised action can be considered."
+        )
+        diagnostics.profile != "WORK" || diagnostics.deviceOwner != "YES" || diagnostics.profileOwner != "YES" -> GuardedActionEvaluation(
+            action = action,
+            status = GuardedActionStatus.UNSUPPORTED,
+            reason = "This device or profile does not provide the managed-device support needed for enforcement."
+        )
+        else -> GuardedActionEvaluation(
+            action = action,
+            status = GuardedActionStatus.READY,
+            reason = "All required capabilities are present and the action is safe to proceed with a guarded enforcement path."
+        )
+    }
+}
 
 fun evaluatePolicyRules(diagnostics: DiagnosticsState): List<PolicyEvaluation> {
     val rules = listOf(

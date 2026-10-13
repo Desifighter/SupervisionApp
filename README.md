@@ -2,7 +2,7 @@
 
 SupervisionAPP is a local-first Android supervision platform designed around what Android actually allows on a real managed device. It is not a generic screen-time reminder app and it does not pretend to provide protection when the platform does not allow it.
 
-This repository contains the Phase 0 diagnostics lab, the Phase 1 consent gate, and the Phase 2 safe policy-evaluation layer. It is positioned as a guarded observability platform rather than an unsupported enforcement product.
+This repository contains the Phase 0 diagnostics lab, the Phase 1 consent gate, the Phase 2 policy-evaluation layer, the Phase 3 guarded action gate, and the Phase 4 local persistence/reporting layer. It is positioned as a guarded observability platform rather than an unsupported enforcement product.
 
 ## Why this exists
 
@@ -66,27 +66,40 @@ Implemented features:
 - policy status display in the diagnostics UI
 - safe reporting of device capability limits without claiming enforcement
 
-### Phase 3 — Guarded enforcement
+### Phase 3 — Guarded action gate (completed)
 
-Planned features:
+Implemented features:
 
-- enforcement only behind verified capability gates
-- runtime checks for permission and policy support
-- no claims beyond the platform’s actual capabilities
-- clear “unsupported on this device” states
+- runtime capability gate for actionable enforcement paths
+- READY, BLOCKED, and UNSUPPORTED evaluation states
+- explicit message when enforcement is not safe on the current device
+- no claim of active enforcement unless the managed-device requirements are met
 
-### Phase 4 — Production-readiness and managed deployment
+### Phase 4 — Local persistence and reporting (completed)
 
-Planned features:
+Implemented features:
 
-- enterprise deployment model
-- stronger privacy and security review
-- export and compliance reporting
-- deployment patterns only where Android policy supports them
+- local audit trail for capability checks and policy decisions
+- summary counts for READY, BLOCKED, and UNSUPPORTED events
+- readable local report export for review and debugging
+- safe storage of decision history without making unsupported control claims
+- review artifacts for deployment readiness, executive briefings, and recommendation guidance
+
+### Phase 5 — Production-readiness and managed deployment (review gate)
+
+This phase is intentionally documented as a gating step rather than a claim of enforcement.
+
+Required before any deployment beyond a lab or review environment:
+
+- verified managed-device or profile-owner support
+- explicit enterprise policy review
+- privacy and compliance sign-off
+- deployment model aligned to the actual Android enforcement capabilities on the target fleet
+- evidence that the app is only allowed to act where the platform grants the required authority
 
 ## Current status
 
-The project is currently in Phase 2 and has been validated on the Moto G85.
+The project is in a verified, review-ready, capability-safe state. Phases 0 through 4 are complete and validated on the Moto G85 test environment.
 
 Verified findings from the live lab:
 
@@ -97,7 +110,8 @@ Verified findings from the live lab:
 - accessibility is enabled
 - app is detected in the personal profile
 - the device has a Work Profile, but the app is not installed or enforced there
-- the policy engine correctly reports READY, BLOCKED, and UNSUPPORTED capability states
+- the guarded action gate correctly reports READY, BLOCKED, and UNSUPPORTED capability states
+- the local audit trail and local report summary are implemented and pass tests
 - no real production enforcement should be claimed from this environment
 
 This is the correct result for a diagnostics-first, capability-safe implementation. It prevents false product claims and keeps the managed environment intact.
@@ -193,15 +207,25 @@ Because of that, this repository is intentionally designed to:
 - keep the Work Profile and managed environment untouched
 - build a safe foundation for later phases
 
+## Remaining production gate
+
+The project is intentionally not claiming a full enterprise enforcement product yet. The remaining work is concentrated in the contract between Android capabilities and deployment reality:
+
+1. managed-device support must be present and verified before enforcement is attempted
+2. a privacy and compliance review must be completed for any real-world rollout
+3. enterprise deployment documentation should be produced only for supported environments
+4. production launch should remain blocked until the review gate confirms real ability and policy alignment
+
 ## License
 
-This project is currently being developed as a private internal prototype. Update this section before publishing a public release.
+This project is licensed under the MIT License.
 
 ## Roadmap
 
 1. Phase 0 diagnostics validation — complete
 2. Safe consent and app-policy onboarding — complete
 3. Policy engine and rule evaluation — complete
-4. Add local persistence and reporting
-5. Introduce guarded enforcement behind runtime capability checks
-6. Prepare enterprise deployment documentation when platform capabilities are available
+4. Guarded action gate — complete
+5. Local persistence and reporting — complete
+6. Deployment readiness review gate — in progress, documentation-first only
+7. Managed-device enforcement rollout — pending real Android policy support
