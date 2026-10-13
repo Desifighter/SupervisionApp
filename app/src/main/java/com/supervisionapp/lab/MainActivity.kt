@@ -16,11 +16,15 @@ import android.os.UserManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,9 +34,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+
+private const val CONSENT_PREFERENCES = "phase1_consent"
+private const val CONSENT_KEY = "accepted"
+
+internal fun shouldShowOnboarding(consentAccepted: Boolean): Boolean = !consentAccepted
 
 data class DiagnosticsState(
     val androidVersion: String = "UNKNOWN",
@@ -183,6 +194,58 @@ private fun buildDiagnostics(context: Context): DiagnosticsState {
 }
 
 @Composable
+fun ConsentOnboardingScreen(onAccept: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "Phase 1: Safe Observability",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "SupervisionAPP is designed to validate device capabilities before any enforcement step.",
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "This app does not claim protection beyond what Android grants. It does not manipulate the Work Profile or managed security controls.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Current mode: observation, diagnostics, and policy evaluation only.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = onAccept,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("I understand and continue")
+            }
+        }
+    }
+}
+
+@Composable
 fun DiagnosticsScreen() {
     val context = LocalContext.current
     var state by remember { mutableStateOf(buildDiagnostics(context)) }
@@ -207,6 +270,7 @@ fun DiagnosticsScreen() {
                     style = MaterialTheme.typography.headlineMedium
                 )
             }
+            item { DiagnosticRow(label = "Mode", value = "OBSERVATION_ONLY") }
             item { DiagnosticRow(label = "Android", value = "${state.androidVersion} / API ${state.apiLevel}") }
             item { DiagnosticRow(label = "Usage Access", value = state.usageAccess) }
             item { DiagnosticRow(label = "Accessibility", value = state.accessibility) }
@@ -248,12 +312,30 @@ private fun DiagnosticRow(label: String, value: String) {
     }
 }
 
+@Composable
+fun ConsentGateScreen() {
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences(CONSENT_PREFERENCES, Context.MODE_PRIVATE) }
+    var consentAccepted by remember { mutableStateOf(sharedPreferences.getBoolean(CONSENT_KEY, false)) }
+
+    if (shouldShowOnboarding(consentAccepted)) {
+        ConsentOnboardingScreen(
+            onAccept = {
+                sharedPreferences.edit().putBoolean(CONSENT_KEY, true).apply()
+                consentAccepted = true
+            }
+        )
+    } else {
+        DiagnosticsScreen()
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                DiagnosticsScreen()
+                ConsentGateScreen()
             }
         }
     }
